@@ -18,6 +18,8 @@ public class CrudKaryawan extends javax.swing.JFrame {
     public Statement st;
     public ResultSet rs;
     Connection cn = koneksi.KoneksiDatabase.BukaKoneksi();
+    private boolean isEditMode = false;
+    private String selectedNik = "";
     
     /**
      * Creates new form CrudKaryawan
@@ -25,6 +27,27 @@ public class CrudKaryawan extends javax.swing.JFrame {
     public CrudKaryawan() {
         initComponents();
         loadData();
+        setEditMode(false);
+        
+        // Add mouse listener to table for row selection
+        table_karyawan.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tableMouseClicked(evt);
+            }
+        });
+    }
+    
+    private void tableMouseClicked(java.awt.event.MouseEvent evt) {
+        int row = table_karyawan.getSelectedRow();
+        if (row != -1) {
+            selectedNik = table_karyawan.getValueAt(row, 0).toString();
+            nik.setText(table_karyawan.getValueAt(row, 0).toString());
+            nama.setText(table_karyawan.getValueAt(row, 1).toString());
+            jabatan.setText(table_karyawan.getValueAt(row, 2).toString());
+            alamat.setText(table_karyawan.getValueAt(row, 3).toString());
+            email.setText(table_karyawan.getValueAt(row, 4).toString());
+            no_telp.setText(table_karyawan.getValueAt(row, 5).toString());
+        }
     }
     
     private void Bersih() {
@@ -34,6 +57,23 @@ public class CrudKaryawan extends javax.swing.JFrame {
         alamat.setText("");
         email.setText("");
         no_telp.setText("");
+        isEditMode = false;
+        selectedNik = "";
+    }
+    
+    private void setEditMode(boolean enable) {
+        nik.setEnabled(enable);
+        nama.setEnabled(enable);
+        jabatan.setEnabled(enable);
+        alamat.setEnabled(enable);
+        email.setEnabled(enable);
+        no_telp.setEnabled(enable);
+        
+        btn_simpan.setEnabled(enable);
+        btn_batal.setEnabled(enable);
+        btn_tambah.setEnabled(!enable);
+        btn_edit.setEnabled(!enable);
+        btn_hapus.setEnabled(!enable);
     }
     
     private void loadData() {
@@ -104,7 +144,12 @@ public class CrudKaryawan extends javax.swing.JFrame {
         no_telp = new javax.swing.JTextField();
         jScrollPane1 = new javax.swing.JScrollPane();
         table_karyawan = new javax.swing.JTable();
+        btn_tambah = new javax.swing.JButton();
         btn_simpan = new javax.swing.JButton();
+        btn_edit = new javax.swing.JButton();
+        btn_hapus = new javax.swing.JButton();
+        btn_batal = new javax.swing.JButton();
+        btn_keluar = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -137,8 +182,23 @@ public class CrudKaryawan extends javax.swing.JFrame {
         ));
         jScrollPane1.setViewportView(table_karyawan);
 
+        btn_tambah.setText("Tambah Data");
+        btn_tambah.addActionListener(this::btn_tambahActionPerformed);
+
         btn_simpan.setText("Simpan");
         btn_simpan.addActionListener(this::btn_simpanActionPerformed);
+
+        btn_edit.setText("Edit");
+        btn_edit.addActionListener(this::btn_editActionPerformed);
+
+        btn_hapus.setText("Hapus");
+        btn_hapus.addActionListener(this::btn_hapusActionPerformed);
+
+        btn_batal.setText("Batal");
+        btn_batal.addActionListener(this::btn_batalActionPerformed);
+
+        btn_keluar.setText("Keluar");
+        btn_keluar.addActionListener(this::btn_keluarActionPerformed);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -163,7 +223,18 @@ public class CrudKaryawan extends javax.swing.JFrame {
                                     .addComponent(jLabel4))
                                 .addGap(18, 18, 18)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(btn_simpan)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(btn_tambah)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(btn_simpan)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(btn_edit)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(btn_hapus)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(btn_batal)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(btn_keluar))
                                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                         .addComponent(nik)
                                         .addComponent(nama)
@@ -203,7 +274,13 @@ public class CrudKaryawan extends javax.swing.JFrame {
                     .addComponent(jLabel7)
                     .addComponent(no_telp, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
-                .addComponent(btn_simpan)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btn_tambah)
+                    .addComponent(btn_simpan)
+                    .addComponent(btn_edit)
+                    .addComponent(btn_hapus)
+                    .addComponent(btn_batal)
+                    .addComponent(btn_keluar))
                 .addGap(18, 18, Short.MAX_VALUE)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 196, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18))
@@ -216,9 +293,15 @@ public class CrudKaryawan extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_nikActionPerformed
 
-    private void btn_simpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_simpanActionPerformed
-        // TODO add your handling code here:
+    private void btn_tambahActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_tambahActionPerformed
+        Bersih();
+        setEditMode(true);
+        isEditMode = false;
+        nik.setEnabled(true);
+        nik.requestFocus();
+    }//GEN-LAST:event_btn_tambahActionPerformed
 
+    private void btn_simpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_simpanActionPerformed
         if (cn == null) {
             JOptionPane.showMessageDialog(
                 this,
@@ -242,43 +325,145 @@ public class CrudKaryawan extends javax.swing.JFrame {
             return;
         }
 
-        String sql = "INSERT INTO data_karyawan (nik, nama, jabatan, alamat, email, no_telp) "
-                   + "VALUES (?, ?, ?, ?, ?, ?)";
+        if (isEditMode) {
+            // Update data
+            String sql = "UPDATE data_karyawan SET nik=?, nama=?, jabatan=?, alamat=?, email=?, no_telp=? WHERE nik=?";
+            
+            try (PreparedStatement ps = cn.prepareStatement(sql)) {
+                ps.setString(1, nik.getText().trim());
+                ps.setString(2, nama.getText().trim());
+                ps.setString(3, jabatan.getText().trim());
+                ps.setString(4, alamat.getText().trim());
+                ps.setString(5, email.getText().trim());
+                ps.setString(6, no_telp.getText().trim());
+                ps.setString(7, selectedNik);
 
-        try (PreparedStatement ps = cn.prepareStatement(sql)) {
+                int result = ps.executeUpdate();
+                
+                if (result > 0) {
+                    JOptionPane.showMessageDialog(this, "Data berhasil diupdate");
+                    Bersih();
+                    loadData();
+                    setEditMode(false);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Data tidak ditemukan");
+                }
 
-            ps.setString(1, nik.getText().trim());
-            ps.setString(2, nama.getText().trim());
-            ps.setString(3, jabatan.getText().trim());
-            ps.setString(4, alamat.getText().trim());
-            ps.setString(5, email.getText().trim());
-            ps.setString(6, no_telp.getText().trim());
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Gagal mengupdate data:\n" + e.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
+        } else {
+            // Insert data
+            String sql = "INSERT INTO data_karyawan (nik, nama, jabatan, alamat, email, no_telp) "
+                       + "VALUES (?, ?, ?, ?, ?, ?)";
 
-            ps.executeUpdate();
+            try (PreparedStatement ps = cn.prepareStatement(sql)) {
+                ps.setString(1, nik.getText().trim());
+                ps.setString(2, nama.getText().trim());
+                ps.setString(3, jabatan.getText().trim());
+                ps.setString(4, alamat.getText().trim());
+                ps.setString(5, email.getText().trim());
+                ps.setString(6, no_telp.getText().trim());
 
-            JOptionPane.showMessageDialog(this, "Data berhasil disimpan");
-            Bersih();
-            loadData();
-            nik.requestFocus();
+                ps.executeUpdate();
 
-        } catch (SQLIntegrityConstraintViolationException e) {
-            JOptionPane.showMessageDialog(
-                this,
-                "NIK sudah terdaftar",
-                "Duplikasi Data",
-                JOptionPane.WARNING_MESSAGE
-            );
+                JOptionPane.showMessageDialog(this, "Data berhasil disimpan");
+                Bersih();
+                loadData();
+                setEditMode(false);
 
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(
-                this,
-                "Gagal menyimpan data:\n" + e.getMessage(),
-                "Error",
-                JOptionPane.ERROR_MESSAGE
-            );
+            } catch (SQLIntegrityConstraintViolationException e) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "NIK sudah terdaftar",
+                    "Duplikasi Data",
+                    JOptionPane.WARNING_MESSAGE
+                );
+
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Gagal menyimpan data:\n" + e.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
+        }
+    }//GEN-LAST:event_btn_simpanActionPerformed
+
+    private void btn_editActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_editActionPerformed
+        if (table_karyawan.getSelectedRow() == -1) {
+            JOptionPane.showMessageDialog(this, "Pilih data yang akan diedit");
+            return;
+        }
+        
+        isEditMode = true;
+        setEditMode(true);
+        nik.setEnabled(false); // NIK tidak bisa diubah saat edit
+        nama.requestFocus();
+    }//GEN-LAST:event_btn_editActionPerformed
+
+    private void btn_hapusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_hapusActionPerformed
+        if (table_karyawan.getSelectedRow() == -1) {
+            JOptionPane.showMessageDialog(this, "Pilih data yang akan dihapus");
+            return;
         }
 
-    }//GEN-LAST:event_btn_simpanActionPerformed
+        int confirm = JOptionPane.showConfirmDialog(
+            this,
+            "Apakah Anda yakin ingin menghapus data ini?",
+            "Konfirmasi Hapus",
+            JOptionPane.YES_NO_OPTION
+        );
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            String sql = "DELETE FROM data_karyawan WHERE nik=?";
+
+            try (PreparedStatement ps = cn.prepareStatement(sql)) {
+                ps.setString(1, selectedNik);
+                int result = ps.executeUpdate();
+
+                if (result > 0) {
+                    JOptionPane.showMessageDialog(this, "Data berhasil dihapus");
+                    Bersih();
+                    loadData();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Data tidak ditemukan");
+                }
+
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Gagal menghapus data:\n" + e.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
+        }
+    }//GEN-LAST:event_btn_hapusActionPerformed
+
+    private void btn_batalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_batalActionPerformed
+        Bersih();
+        setEditMode(false);
+    }//GEN-LAST:event_btn_batalActionPerformed
+
+    private void btn_keluarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_keluarActionPerformed
+        int confirm = JOptionPane.showConfirmDialog(
+            this,
+            "Apakah Anda yakin ingin keluar?",
+            "Konfirmasi Keluar",
+            JOptionPane.YES_NO_OPTION
+        );
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            System.exit(0);
+        }
+    }//GEN-LAST:event_btn_keluarActionPerformed
 
     /**
      * @param args the command line arguments
@@ -307,7 +492,12 @@ public class CrudKaryawan extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField alamat;
+    private javax.swing.JButton btn_batal;
+    private javax.swing.JButton btn_edit;
+    private javax.swing.JButton btn_hapus;
+    private javax.swing.JButton btn_keluar;
     private javax.swing.JButton btn_simpan;
+    private javax.swing.JButton btn_tambah;
     private javax.swing.JTextField email;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
